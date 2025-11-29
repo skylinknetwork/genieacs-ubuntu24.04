@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "========================================================"
-echo "         GenieACS FULL INSTALLER + UI RESTORE"
-echo "========================================================"
+echo "========================================================="
+echo "         Skylink Network GenieACS FULL INSTALLER"
+echo "========================================================="
 
 GITHUB_USER="skylinknetwork"
 REPO="genieacs-ubuntu24.04"
