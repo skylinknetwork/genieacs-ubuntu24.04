@@ -15,16 +15,16 @@ banner() {
   clear
   # "flash" kuning-putih sekali
   echo -e "${YELLOW}"
-  echo "=================================================================="
-  echo "               GenieACS Installer - Skylink Network"
-  echo "=================================================================="
+  echo "==============================================="
+  echo "     GenieACS Installer - Skylink Network"  
+  echo "==============================================="
   echo -e "${NC}"
   sleep 0.25
   clear
   echo -e "${WHITE}"
-  echo "=================================================================="
-  echo "               GenieACS Installer - Skylink Network"
-  echo "=================================================================="
+  echo "==============================================="
+  echo "     GenieACS Installer - Skylink Network"  
+  echo "==============================================="
   echo -e "${NC}"
 }
 
