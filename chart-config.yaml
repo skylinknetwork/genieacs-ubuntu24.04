@@ -1,0 +1,139 @@
+Access Type:
+  label: '"PON"'
+  slices:
+    1_GPON:
+      color: '"#29c7cc"'
+      filter: VirtualParameters.getponmode = "GPON" OR VirtualParameters.getponmode =
+        "X_CU_GPON"
+      label: "'GPON'"
+    2_EPON:
+      color: '"#cc2998"'
+      filter: VirtualParameters.getponmode = "EPON" OR VirtualParameters.getponmode =
+        "X_CU_EPON"
+      label: "'EPON'"
+    3_ETHER:
+      color: '"#4f5454"'
+      filter: VirtualParameters.getponmode = "ETH" OR VirtualParameters.getponmode = ""
+      label: "'ETH'"
+PON Power:
+  label: '"Optical RX"'
+  slices:
+    1_Normal:
+      color: '"#0066FF"'
+      filter: VirtualParameters.RXPower <= "-17.0" AND VirtualParameters.RXPower <>
+        "N/A"
+      label: '"Good"'
+    2_Warning:
+      color: '"#FFCC00"'
+      filter: VirtualParameters.RXPower >= "-20.0" AND VirtualParameters.RXPower <=
+        "-23.0" AND VirtualParameters.RXPower <> "N/A"
+      label: '"Normal"'
+    3_Critical:
+      color: '"#FF2400"'
+      filter: VirtualParameters.RXPower > "-23.0" AND VirtualParameters.RXPower <>
+        "N/A"
+      label: '"Bad"'
+devreg:
+  label: '"Registered"'
+  slices:
+    2_hariini:
+      color: "'#D65315'"
+      filter: Events.Registered > (NOW() - 5 * 60 * 1000) - (24 * 60 * 60 * 1000)
+      label: "'Today'"
+    3_minggu:
+      color: "'#A400FF'"
+      filter: Events.Registered > (NOW() - 5 * 60 * 1000) - (24 * 7 * 60 * 60 * 1000)
+        AND Events.Registered < (NOW() - 5 * 60 * 1000) - (24 * 60 * 60 * 1000)
+      label: "'Register < 7 hari'"
+    4_bulan:
+      color: "'#5BFF00'"
+      filter: Events.Registered > (NOW() - 5 * 60 * 1000) - (24 * 30 * 60 * 60 * 1000)
+        AND Events.Registered < (NOW() - 5 * 60 * 1000) - (24 * 7 * 60 * 60 *
+        1000)
+      label: "'Register < 30 hari'"
+temp:
+  label: '"Temperature"'
+  slices:
+    1_Normal:
+      color: "'#00DBFF'"
+      filter: VirtualParameters.gettemp <= "45"
+      label: '"Normal"'
+    2_Warning:
+      color: '"#fffa00"'
+      filter: VirtualParameters.gettemp > "45" AND VirtualParameters.gettemp <= "60"
+      label: '"Hangat"'
+    3_Critical:
+      color: '"#FF2400"'
+      filter: VirtualParameters.gettemp > "60" AND VirtualParameters.gettemp <= "70"
+      label: '"Panas"'
+    4_Critical:
+      color: '"#FF2400"'
+      filter: VirtualParameters.gettemp > "70" AND VirtualParameters.gettemp <> "N/A"
+      label: '"Warning"'
+online:
+  label: '"Status"'
+  slices:
+    1_onlineNow:
+      color: '"#4668e3"'
+      filter: Events.Inform > NOW() - 220 * 1000
+      label: '"Online"'
+    2_past5m:
+      color: '"#e34b46"'
+      filter: Events.Inform < (NOW() - 220 * 1000) AND Events.Inform > (NOW() - 5 * 60
+        * 1000) - (24 * 60 * 60 * 1000)
+      label: '"Offline"'
+    4_past24h:
+      color: '"#a83834"'
+      filter: Events.Inform < (NOW() - 5 * 60 * 1000) - (24 * 60 * 60 * 1000) AND
+        Events.Inform > (NOW() - 5 * 60 * 1000) - (3 * 24 * 60 * 60 * 1000)
+      label: '"Offline > 24h"'
+    5_past3d:
+      color: '"#732522"'
+      filter: Events.Inform < (NOW() - 5 * 60 * 1000) - (3 * 24 * 60 * 60 * 1000) AND
+        Events.Inform > (NOW() - 5 * 60 * 1000) - (7 * 24 * 60 * 60 * 1000)
+      label: '"Offline > 3d"'
+    6_past7d:
+      color: '"#4f1917"'
+      filter: Events.Inform < (NOW() - 5 * 60 * 1000) - (7 * 24 * 60 * 60 * 1000) AND
+        Events.Inform > (NOW() - 5 * 60 * 1000) - (30 * 24 * 60 * 60 * 1000)
+      label: '"Offline > 7d"'
+    7_past30d:
+      color: '"#2b0e0d"'
+      filter: Events.Inform < (NOW() - 5 * 60 * 1000) - (30 * 24 * 60 * 60 * 1000)
+      label: '"Offline > 30d"'
+ont-type:
+  label: '"Device"'
+  slices:
+    1_Huawei:
+      color: '"#6484de"'
+      filter: DeviceID.Manufacturer = "Huawei Technologies Co., Ltd" OR
+        DeviceID.Manufacturer = "EcomTech Technologies Co., Ltd"
+      label: "'Huawei'"
+    2_Fiberhome:
+      color: '"#61cc49"'
+      filter: DeviceID.Manufacturer = "FiberHome"
+      label: "'FiberHome'"
+    3_Xpon:
+      color: '"#d9cf1e"'
+      filter: DeviceID.Manufacturer = "ZICG"
+      label: "'Xpon'"
+    4_TOTO:
+      color: '"#6955cf"'
+      filter: DeviceID.Manufacturer = "ZIONCOM"
+      label: '"Totolink"'
+    5_ZTE:
+      color: '"#d9631e"'
+      filter: DeviceID.Manufacturer = "ZTE"
+      label: "'ZTE'"
+    6_Mikrotik:
+      color: '"#cf1524"'
+      filter: DeviceID.Manufacturer = "MikroTik"
+      label: "'MikroTik'"
+    7_Other:
+      color: '"#313036"'
+      filter: DeviceID.Manufacturer <> "MikroTik" AND DeviceID.Manufacturer <> "ZTE"
+        AND DeviceID.Manufacturer <> "ZICG" AND DeviceID.Manufacturer <>
+        "ZIONCOM" AND DeviceID.Manufacturer <> "EcomTech Technologies Co., Ltd"
+        AND DeviceID.Manufacturer <> "FiberHome" AND DeviceID.Manufacturer <>
+        "Huawei Technologies Co., Ltd"
+      label: "'Other'"
