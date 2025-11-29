@@ -1,59 +1,89 @@
 #!/bin/bash
 # Simple installer GenieACS untuk Ubuntu Server 24.04
-# Versi AUTO-DETECT USER & IP
+# Versi AUTO-DETECT USER & IP + Banner + Progress bar
 set -euo pipefail
 
-echo "=== [0/6] Deteksi user & IP otomatis ==="
+# Warna
+YELLOW='\e[33;1m'
+WHITE='\e[97;1m'
+NC='\e[0m'
 
-# Deteksi user non-root yang masuk (prioritas: logname, SUDO_USER, whoami, lalu user dengan UID >= 1000)
+TOTAL_STEPS=6
+STEP=0
+
+banner() {
+  clear
+  # "flash" kuning-putih sekali
+  echo -e "${YELLOW}"
+  echo "=================================================================="
+  echo "        GenieACS Installer - Skylink Network"
+  echo "=================================================================="
+  echo -e "${NC}"
+  sleep 0.25
+  clear
+  echo -e "${WHITE}"
+  echo "=================================================================="
+  echo "               GenieACS Installer - Skylink Network"
+  echo "=================================================================="
+  echo -e "${NC}"
+}
+
+progress_step() {
+  STEP=$((STEP+1))
+  banner
+  local percent=$(( STEP * 100 / TOTAL_STEPS ))
+  local filled=$(( STEP * 20 / TOTAL_STEPS ))
+  local empty=$((20 - filled))
+
+  printf "Progress: ["
+  for _ in $(seq 1 $filled); do printf "#"; done
+  for _ in $(seq 1 $empty);  do printf " "; done
+  printf "] %3d%%\n\n" "$percent"
+
+  echo "=== [$STEP/$TOTAL_STEPS] $1 ==="
+  echo
+}
+
+# =====================================================
+# [0] Deteksi user & IP
+# =====================================================
+progress_step "Deteksi user & IP otomatis"
+
 REAL_USER="$(logname 2>/dev/null || echo "${SUDO_USER:-}" || whoami)"
-
-# Pastikan REAL_USER itu user normal, bukan root
 if [ "$REAL_USER" = "root" ] || [ -z "$REAL_USER" ]; then
-  # Ambil user pertama dengan UID >= 1000
   REAL_USER="$(getent passwd | awk -F: '$3>=1000 && $3<60000 {print $1; exit}')"
 fi
 
-if [ -z "$REAL_USER" ]; then
-  echo "Gagal mendeteksi user non-root. Set REAL_USER manual di script."
-  exit 1
-fi
-
 REAL_HOME="$(getent passwd "$REAL_USER" | cut -d: -f6)"
+[ -d "$REAL_HOME" ] || REAL_HOME="/home/${REAL_USER}"
 
-if [ -z "$REAL_HOME" ] || [ ! -d "$REAL_HOME" ]; then
-  REAL_HOME="/home/${REAL_USER}"
-fi
-
-# Deteksi IP utama (IPv4) yang dipakai keluar internet
 ACS_IP="$(ip -4 route get 1.1.1.1 2>/dev/null | awk '/src/ {for(i=1;i<=NF;i++){if($i=="src"){print $(i+1); exit}}}')"
+[ -n "${ACS_IP:-}" ] || ACS_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
 
-# Fallback kalau cara di atas gagal
-if [ -z "${ACS_IP:-}" ]; then
-  ACS_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
-fi
-
-if [ -z "${ACS_IP:-}" ]; then
-  echo "Gagal mendeteksi IP server. Set ACS_IP manual di script."
-  exit 1
-fi
-
-# JWT secret bisa kamu ganti kapan-kapan, sementara pakai default dulu
 UI_JWT_SECRET="rahasia-panjang-anda"
 
-echo "User terdeteksi : ${REAL_USER}"
-echo "Home directory  : ${REAL_HOME}"
+echo "User terdeteksi  : ${REAL_USER}"
+echo "Home directory   : ${REAL_HOME}"
 echo "IP ACS terdeteksi: ${ACS_IP}"
-echo "========================================="
+sleep 2
 
-echo "=== [1/6] Update sistem ==="
+# =====================================================
+# [1] Update sistem
+# =====================================================
+progress_step "Update sistem"
 sudo apt update && sudo apt upgrade -y
 
-echo "=== [2/6] Install Redis & Curl ==="
+# =====================================================
+# [2] Install Redis & Curl
+# =====================================================
+progress_step "Install Redis & Curl"
 sudo apt install -y redis-server curl
 sudo systemctl enable --now redis-server
 
-echo "=== [3/6] Install MongoDB 7.0 (repo jammy) ==="
+# =====================================================
+# [3] Install MongoDB
+# =====================================================
+progress_step "Install MongoDB 7.0"
 curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | \
   sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
 
@@ -64,16 +94,24 @@ sudo apt update
 sudo apt install -y mongodb-org
 sudo systemctl enable --now mongod
 
-echo "=== [4/6] Install Node.js 20 LTS & build-essential ==="
+# =====================================================
+# [4] Install Node.js 20
+# =====================================================
+progress_step "Install Node.js 20 + build-essential"
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs build-essential
 
-echo "=== [5/6] Install GenieACS via npm ==="
+# =====================================================
+# [5] Install GenieACS
+# =====================================================
+progress_step "Install GenieACS via npm"
 sudo npm install -g genieacs
 
-echo "=== [6/6] Buat & aktifkan service systemd GenieACS ==="
+# =====================================================
+# [6] Buat service systemd
+# =====================================================
+progress_step "Buat & aktifkan service systemd"
 
-# ====== Service: genieacs-ui ======
 sudo tee /etc/systemd/system/genieacs-ui.service > /dev/null << EOF
 [Unit]
 Description=GenieACS Web UI
@@ -92,7 +130,6 @@ Environment=NODE_ENV=production
 WantedBy=multi-user.target
 EOF
 
-# ====== Service: genieacs-cwmp ======
 sudo tee /etc/systemd/system/genieacs-cwmp.service > /dev/null << EOF
 [Unit]
 Description=GenieACS CWMP
@@ -110,7 +147,6 @@ Environment=GENIEACS_CWMP_INTERFACE=${ACS_IP}
 WantedBy=multi-user.target
 EOF
 
-# ====== Service: genieacs-nbi ======
 sudo tee /etc/systemd/system/genieacs-nbi.service > /dev/null << EOF
 [Unit]
 Description=GenieACS NBI
@@ -127,7 +163,6 @@ Environment=GENIEACS_NBI_PORT=7557
 WantedBy=multi-user.target
 EOF
 
-# ====== Service: genieacs-fs ======
 sudo tee /etc/systemd/system/genieacs-fs.service > /dev/null << EOF
 [Unit]
 Description=GenieACS File Server
@@ -147,6 +182,7 @@ EOF
 sudo systemctl daemon-reload
 sudo systemctl enable --now genieacs-ui genieacs-cwmp genieacs-nbi genieacs-fs
 
-echo "=== SELESAI ==="
+progress_step "SELESAI"
 echo "GenieACS seharusnya sudah jalan."
 echo "Coba akses: http://${ACS_IP}:3000"
+echo
