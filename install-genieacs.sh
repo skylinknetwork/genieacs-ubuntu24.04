@@ -1,12 +1,50 @@
 #!/bin/bash
 # Simple installer GenieACS untuk Ubuntu Server 24.04
-# Sesuaikan USER_LINUX dan ACS_IP di bawah sebelum dipakai massal
+# Versi AUTO-DETECT USER & IP
+set -euo pipefail
 
-set -e
+echo "=== [0/6] Deteksi user & IP otomatis ==="
 
-USER_LINUX="skylink"
-ACS_IP="10.20.20.5"
+# Deteksi user non-root yang masuk (prioritas: logname, SUDO_USER, whoami, lalu user dengan UID >= 1000)
+REAL_USER="$(logname 2>/dev/null || echo "${SUDO_USER:-}" || whoami)"
+
+# Pastikan REAL_USER itu user normal, bukan root
+if [ "$REAL_USER" = "root" ] || [ -z "$REAL_USER" ]; then
+  # Ambil user pertama dengan UID >= 1000
+  REAL_USER="$(getent passwd | awk -F: '$3>=1000 && $3<60000 {print $1; exit}')"
+fi
+
+if [ -z "$REAL_USER" ]; then
+  echo "Gagal mendeteksi user non-root. Set REAL_USER manual di script."
+  exit 1
+fi
+
+REAL_HOME="$(getent passwd "$REAL_USER" | cut -d: -f6)"
+
+if [ -z "$REAL_HOME" ] || [ ! -d "$REAL_HOME" ]; then
+  REAL_HOME="/home/${REAL_USER}"
+fi
+
+# Deteksi IP utama (IPv4) yang dipakai keluar internet
+ACS_IP="$(ip -4 route get 1.1.1.1 2>/dev/null | awk '/src/ {for(i=1;i<=NF;i++){if($i=="src"){print $(i+1); exit}}}')"
+
+# Fallback kalau cara di atas gagal
+if [ -z "${ACS_IP:-}" ]; then
+  ACS_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
+fi
+
+if [ -z "${ACS_IP:-}" ]; then
+  echo "Gagal mendeteksi IP server. Set ACS_IP manual di script."
+  exit 1
+fi
+
+# JWT secret bisa kamu ganti kapan-kapan, sementara pakai default dulu
 UI_JWT_SECRET="rahasia-panjang-anda"
+
+echo "User terdeteksi : ${REAL_USER}"
+echo "Home directory  : ${REAL_HOME}"
+echo "IP ACS terdeteksi: ${ACS_IP}"
+echo "========================================="
 
 echo "=== [1/6] Update sistem ==="
 sudo apt update && sudo apt upgrade -y
@@ -44,8 +82,8 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=${USER_LINUX}
-WorkingDirectory=/home/${USER_LINUX}
+User=${REAL_USER}
+WorkingDirectory=${REAL_HOME}
 ExecStart=/usr/bin/genieacs-ui --ui-jwt-secret ${UI_JWT_SECRET}
 Restart=always
 Environment=NODE_ENV=production
