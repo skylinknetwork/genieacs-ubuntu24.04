@@ -55,18 +55,32 @@ sudo apt install -y redis-server curl
 sudo systemctl enable --now redis-server
 
 # =====================================================
-# [3] Install MongoDB 7.0
+# [3/6] Install MongoDB (via GitHub split files)
 # =====================================================
-step "[3/6] Install MongoDB 7.0"
-curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | \
-  sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
+step "[3/6] Install MongoDB dari repo GitHub Skylink"
 
-echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | \
-  sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+MONGO_BASE_URL="https://raw.githubusercontent.com/skylinknetwork/genieacs-ubuntu24.04/main"
 
-sudo apt update
-sudo apt install -y mongodb-org
-sudo systemctl enable --now mongod
+echo "[INFO] Download part file MongoDB..."
+mkdir -p /tmp/mongodb
+cd /tmp/mongodb
+
+# Download semua part
+curl -fsSL -O ${MONGO_BASE_URL}/mongodb-part-aa
+curl -fsSL -O ${MONGO_BASE_URL}/mongodb-part-ab
+curl -fsSL -O ${MONGO_BASE_URL}/mongodb-part-ac
+
+echo "[INFO] Menggabungkan part file..."
+cat mongodb-part-* > mongodb-full.tar.gz
+
+echo "[INFO] Extract package..."
+tar xzf mongodb-full.tar.gz
+
+echo "[INFO] Install semua paket .deb MongoDB..."
+sudo apt install -y ./*.deb
+
+echo "[INFO] Mengaktifkan MongoDB service..."
+sudo systemctl enable --now mongod || sudo systemctl restart mongod
 
 # =====================================================
 # [4] Install Node.js 20 LTS
