@@ -1,68 +1,163 @@
-#!/usr/bin/env bash
+#!/bin/bash
+# Simple installer GenieACS untuk Ubuntu Server 24.04
+# Banner normal - NO PROGRESS BAR
 set -euo pipefail
 
-echo "========================================================="
-echo "         Skylink Network GenieACS FULL INSTALLER"
-echo "========================================================="
+banner() {
+clear
+echo ""
+echo "===================================================="
+echo "        GenieACS Installer - Skylink Network        "
+echo "===================================================="
+echo ""
+}
 
-GITHUB_USER="skylinknetwork"
-REPO="genieacs-ubuntu24.04"
-CONFIG_TAR="genieacs-config.tar.gz"
-RAW_TAR_URL="https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${CONFIG_TAR}"
-INSTALLER_URL="https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/install-genieacs.sh"
+step() {
+  banner
+  echo "=== $1 ==="
+  echo
+}
 
-echo "STEP 1: Install GenieACS core..."
-bash <(curl -fsSL "$INSTALLER_URL")
+# =====================================================
+# [0] Deteksi user & IP
+# =====================================================
+step "[0/6] Deteksi user & IP otomatis"
 
-echo "STEP 2: Download UI config dump..."
-TAR_PATH="/tmp/${CONFIG_TAR}"
-EXTRACT_DIR="/tmp/genieacs-config"
-
-rm -f "$TAR_PATH"
-rm -rf "$EXTRACT_DIR"
-
-if command -v curl >/dev/null 2>&1; then
-  curl -fsSL "$RAW_TAR_URL" -o "$TAR_PATH"
-else
-  wget -q "$RAW_TAR_URL" -O "$TAR_PATH"
+REAL_USER="$(logname 2>/dev/null || echo "${SUDO_USER:-}" || whoami)"
+if [ "$REAL_USER" = "root" ] || [ -z "$REAL_USER" ]; then
+  REAL_USER="$(getent passwd | awk -F: '$3>=1000 && $3<60000 {print $1; exit}')"
 fi
 
-if [ ! -f "$TAR_PATH" ]; then
-  echo "ERROR: Tidak bisa download config tar.gz!"
-  exit 1
-fi
+REAL_HOME="$(getent passwd "$REAL_USER" | cut -d: -f6)"
+[ -d "$REAL_HOME" ] || REAL_HOME="/home/${REAL_USER}"
 
-echo "STEP 3: Extract config..."
-mkdir -p /tmp
-tar xzf "$TAR_PATH" -C /tmp
+ACS_IP="$(ip -4 route get 1.1.1.1 2>/dev/null | awk '/src/ {for(i=1;i<=NF;i++){if($i=="src"){print $(i+1); exit}}}')"
+[ -n "${ACS_IP:-}" ] || ACS_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
 
-BSON_PATH="${EXTRACT_DIR}/genieacs/config.bson"
+UI_JWT_SECRET="rahasia-panjang-anda"
 
-if [ ! -f "$BSON_PATH" ]; then
-  echo "ERROR: config.bson tidak ditemukan!"
-  exit 1
-fi
+echo "User terdeteksi  : ${REAL_USER}"
+echo "Home directory   : ${REAL_HOME}"
+echo "IP ACS terdeteksi: ${ACS_IP}"
+sleep 2
 
-echo "STEP 4: Hapus konfigurasi lama di MongoDB..."
-mongosh --quiet <<'EOF'
-db = db.getSiblingDB("genieacs");
-db.config.deleteMany({});
+# =====================================================
+# [1] Update sistem
+# =====================================================
+step "[1/6] Update sistem"
+sudo apt update && sudo apt upgrade -y
+
+# =====================================================
+# [2] Install Redis & Curl
+# =====================================================
+step "[2/6] Install Redis & Curl"
+sudo apt install -y redis-server curl
+sudo systemctl enable --now redis-server
+
+# =====================================================
+# [3] Install MongoDB 7.0
+# =====================================================
+step "[3/6] Install MongoDB 7.0"
+curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | \
+  sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
+
+echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | \
+  sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+
+sudo apt update
+sudo apt install -y mongodb-org
+sudo systemctl enable --now mongod
+
+# =====================================================
+# [4] Install Node.js 20 LTS
+# =====================================================
+step "[4/6] Install Node.js 20 LTS"
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs build-essential
+
+# =====================================================
+# [5] Install GenieACS via npm
+# =====================================================
+step "[5/6] Install GenieACS via npm"
+sudo npm install -g genieacs
+
+# =====================================================
+# [6] Buat service systemd
+# =====================================================
+step "[6/6] Membuat service systemd"
+
+sudo tee /etc/systemd/system/genieacs-ui.service > /dev/null << EOF
+[Unit]
+Description=GenieACS Web UI
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=${REAL_USER}
+WorkingDirectory=${REAL_HOME}
+ExecStart=/usr/bin/genieacs-ui --ui-jwt-secret ${UI_JWT_SECRET}
+Restart=always
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
 EOF
 
-echo "STEP 5: Restore konfigurasi UI..."
-mongorestore \
-  --host 127.0.0.1 \
-  --port 27017 \
-  --db genieacs \
-  --collection config \
-  --drop \
-  "$BSON_PATH"
+sudo tee /etc/systemd/system/genieacs-cwmp.service > /dev/null << EOF
+[Unit]
+Description=GenieACS CWMP
+After=network-online.target
+Wants=network-online.target
 
-echo "STEP 6: Restart semua service GenieACS..."
-sudo systemctl restart genieacs-cwmp genieacs-nbi genieacs-fs genieacs-ui
+[Service]
+ExecStart=/usr/bin/genieacs-cwmp
+User=nobody
+Restart=always
+Environment=GENIEACS_CWMP_PORT=7547
+Environment=GENIEACS_CWMP_INTERFACE=${ACS_IP}
 
-echo "========================================================"
-echo "    INSTALASI COMPLETE! GenieACS SIAP DIPAKAI!"
-echo "========================================================"
-echo "Buka browser: http://IP-SERVER:3000"
-echo "ACS + UI + Chart + Layout = restored full."
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo tee /etc/systemd/system/genieacs-nbi.service > /dev/null << EOF
+[Unit]
+Description=GenieACS NBI
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/genieacs-nbi
+User=nobody
+Restart=always
+Environment=GENIEACS_NBI_PORT=7557
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo tee /etc/systemd/system/genieacs-fs.service > /dev/null << EOF
+[Unit]
+Description=GenieACS File Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/genieacs-fs
+User=nobody
+Restart=always
+Environment=GENIEACS_FS_PORT=7567
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now genieacs-ui genieacs-cwmp genieacs-nbi genieacs-fs
+
+banner
+echo "=== SELESAI ==="
+echo "GenieACS seharusnya sudah jalan."
+echo "Coba akses: http://${ACS_IP}:3000"
+echo
