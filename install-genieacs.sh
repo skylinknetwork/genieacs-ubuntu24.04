@@ -1,27 +1,18 @@
 #!/bin/bash
 # Simple installer GenieACS untuk Ubuntu Server 24.04
-# Banner normal - NO PROGRESS BAR
+# Versi: MongoDB dari repo resmi mongodb.com
 set -euo pipefail
 
-banner() {
-  clear
-  echo ""
-  echo "===================================================="
-  echo "        GenieACS Installer - Skylink Network        "
-  echo "===================================================="
-  echo ""
-}
-
-step() {
-  banner
-  echo "=== $1 ==="
-  echo
-}
+echo ""
+echo "===================================================="
+echo "        GenieACS Installer - Skylink Network        "
+echo "===================================================="
+echo ""
 
 # =====================================================
-# [0] Deteksi user & IP
+# 0. Deteksi user & IP otomatis
 # =====================================================
-step "[0/6] Deteksi user & IP otomatis"
+echo "=== [0/6] Deteksi user & IP otomatis ==="
 
 REAL_USER="$(logname 2>/dev/null || echo "${SUDO_USER:-}" || whoami)"
 if [ "$REAL_USER" = "root" ] || [ -z "$REAL_USER" ]; then
@@ -39,80 +30,60 @@ UI_JWT_SECRET="rahasia-panjang-anda"
 echo "User terdeteksi  : ${REAL_USER}"
 echo "Home directory   : ${REAL_HOME}"
 echo "IP ACS terdeteksi: ${ACS_IP}"
-sleep 2
+echo ""
+sleep 1
 
 # =====================================================
-# [1] Update sistem
+# 1. Update sistem
 # =====================================================
-step "[1/6] Update sistem"
+echo "=== [1/6] Update sistem ==="
 sudo apt update && sudo apt upgrade -y
 
 # =====================================================
-# [2] Install Redis & Curl
+# 2. Install Redis & Curl
 # =====================================================
-step "[2/6] Install Redis & Curl"
+echo "=== [2/6] Install Redis & Curl ==="
 sudo apt install -y redis-server curl
 sudo systemctl enable --now redis-server
 
 # =====================================================
-# [3/6] Install MongoDB (via GitHub split files)
+# 3. Install MongoDB 7.0 (repo resmi mongodb.com)
 # =====================================================
-step "[3/6] Install MongoDB dari repo GitHub Skylink"
+echo "=== [3/6] Install MongoDB 7.0 (official repo) ==="
 
-MONGO_BASE_URL="https://raw.githubusercontent.com/skylinknetwork/genieacs-ubuntu24.04/main"
+curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | \
+  sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
 
-echo "[INFO] Download part file MongoDB..."
-mkdir -p /tmp/mongodb
-cd /tmp/mongodb
+echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | \
+  sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
 
-# Download semua part
-curl -fsSL -O ${MONGO_BASE_URL}/mongodb-part-aa
-curl -fsSL -O ${MONGO_BASE_URL}/mongodb-part-ab
-curl -fsSL -O ${MONGO_BASE_URL}/mongodb-part-ac
-
-echo "[INFO] Menggabungkan part file..."
-cat mongodb-part-* > mongodb-full.tar.gz
-
-echo "[INFO] Extract package..."
-tar xzf mongodb-full.tar.gz
-
-echo "[INFO] Install paket mongodb-org-server saja (tanpa meta mongodb-org)..."
-cd /tmp/mongodb
-
-# install hanya server (mongod); cukup untuk GenieACS
-if ls mongodb-org-server_*.deb >/dev/null 2>&1; then
-  sudo dpkg -i mongodb-org-server_*.deb || sudo apt -f install -y
-else
-  echo "[ERROR] Paket mongodb-org-server_*.deb tidak ditemukan di /tmp/mongodb"
-  exit 1
-fi
-
-echo "[INFO] Mengaktifkan MongoDB service..."
-sudo systemctl enable --now mongod || sudo systemctl restart mongod
+sudo apt update
+sudo apt install -y mongodb-org
+sudo systemctl enable --now mongod
 
 # =====================================================
-# [4] Install Node.js 20 LTS
+# 4. Install Node.js 20 LTS & build-essential
 # =====================================================
-step "[4/6] Install Node.js 20 LTS"
+echo "=== [4/6] Install Node.js 20 & build tools ==="
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs build-essential
 
 # =====================================================
-# [5] Install GenieACS via npm
+# 5. Install GenieACS via npm
 # =====================================================
-step "[5/6] Install GenieACS via npm"
+echo "=== [5/6] Install GenieACS ==="
 sudo npm install -g genieacs
 
 # =====================================================
-# [6] Buat service systemd
+# 6. Buat & aktifkan service systemd GenieACS
 # =====================================================
-step "[6/6] Membuat service systemd"
+echo "=== [6/6] Konfigurasi service GenieACS ==="
 
+# UI service
 sudo tee /etc/systemd/system/genieacs-ui.service > /dev/null << EOF
 [Unit]
 Description=GenieACS Web UI
 After=network-online.target
-Wants=network-online.target
 
 [Service]
 Type=simple
@@ -126,11 +97,11 @@ Environment=NODE_ENV=production
 WantedBy=multi-user.target
 EOF
 
+# CWMP
 sudo tee /etc/systemd/system/genieacs-cwmp.service > /dev/null << EOF
 [Unit]
 Description=GenieACS CWMP
 After=network-online.target
-Wants=network-online.target
 
 [Service]
 ExecStart=/usr/bin/genieacs-cwmp
@@ -143,11 +114,11 @@ Environment=GENIEACS_CWMP_INTERFACE=${ACS_IP}
 WantedBy=multi-user.target
 EOF
 
+# NBI
 sudo tee /etc/systemd/system/genieacs-nbi.service > /dev/null << EOF
 [Unit]
 Description=GenieACS NBI
 After=network-online.target
-Wants=network-online.target
 
 [Service]
 ExecStart=/usr/bin/genieacs-nbi
@@ -159,11 +130,11 @@ Environment=GENIEACS_NBI_PORT=7557
 WantedBy=multi-user.target
 EOF
 
+# File server
 sudo tee /etc/systemd/system/genieacs-fs.service > /dev/null << EOF
 [Unit]
 Description=GenieACS File Server
 After=network-online.target
-Wants=network-online.target
 
 [Service]
 ExecStart=/usr/bin/genieacs-fs
@@ -178,8 +149,11 @@ EOF
 sudo systemctl daemon-reload
 sudo systemctl enable --now genieacs-ui genieacs-cwmp genieacs-nbi genieacs-fs
 
-banner
-echo "=== SELESAI ==="
-echo "GenieACS seharusnya sudah jalan."
-echo "Coba akses: http://${ACS_IP}:3000"
-echo
+echo ""
+echo "===================================================="
+echo "           INSTALL SELESAI - GENIEACS OK            "
+echo "===================================================="
+echo ""
+echo "Akses UI sekarang:"
+echo "➡️  http://${ACS_IP}:3000"
+echo ""
