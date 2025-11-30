@@ -76,8 +76,16 @@ cat mongodb-part-* > mongodb-full.tar.gz
 echo "[INFO] Extract package..."
 tar xzf mongodb-full.tar.gz
 
-echo "[INFO] Install semua paket .deb MongoDB..."
-sudo apt install -y ./*.deb
+echo "[INFO] Install paket mongodb-org-server saja (tanpa meta mongodb-org)..."
+cd /tmp/mongodb
+
+# install hanya server (mongod); cukup untuk GenieACS
+if ls mongodb-org-server_*.deb >/dev/null 2>&1; then
+  sudo dpkg -i mongodb-org-server_*.deb || sudo apt -f install -y
+else
+  echo "[ERROR] Paket mongodb-org-server_*.deb tidak ditemukan di /tmp/mongodb"
+  exit 1
+fi
 
 echo "[INFO] Mengaktifkan MongoDB service..."
 sudo systemctl enable --now mongod || sudo systemctl restart mongod
