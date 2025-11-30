@@ -4,12 +4,12 @@
 set -euo pipefail
 
 banner() {
-clear
-echo ""
-echo "===================================================="
-echo "        GenieACS Installer - Skylink Network        "
-echo "===================================================="
-echo ""
+  clear
+  echo ""
+  echo "===================================================="
+  echo "        GenieACS Installer - Skylink Network        "
+  echo "===================================================="
+  echo ""
 }
 
 step() {
