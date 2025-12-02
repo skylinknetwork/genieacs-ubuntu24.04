@@ -163,3 +163,24 @@ Environment=GENIEACS_NBI_PORT=7557
 [Install]
 WantedBy=multi-user.target
 EOF
+```
+
+6.4 Buat sistem GenieACS File Server di Ubuntu
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Buat dan setting GenieACS File Server<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sekaligus aktifkan auto start ketika berhenti
+```bash
+sudo tee /etc/systemd/system/genieacs-fs.service > /dev/null << EOF
+[Unit]
+Description=GenieACS File Server
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/genieacs-fs
+User=nobody
+Restart=always
+Environment=GENIEACS_FS_PORT=7567
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
