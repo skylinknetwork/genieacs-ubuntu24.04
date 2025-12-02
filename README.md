@@ -9,4 +9,12 @@ Project ini akan membantu install GenieACS di Ubuntu 24.04 LTS (Noble Numbat) Un
 sudo apt update && sudo apt upgrade -y
 ```
 
-2. Install Redis & Curl
+2. Install dan Enable Redis & Curl
+   Redis adalah layanan untuk caching di memory
+   dan curl adalah tools untuk upload download dalam jaringan
+```bash
+sudo apt install -y redis-server curl
+sudo systemctl enable --now redis-server
+```
+
+3. 
