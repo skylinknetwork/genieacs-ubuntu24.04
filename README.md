@@ -6,7 +6,7 @@ Project ini akan membantu install GenieACS di Ubuntu 24.04 LTS (Noble Numbat) Un
 
 1. Update dan upgrade apt di Ubuntu 24.04
 ```bash
-# =========================================
-#    Install GenieACS by Skylink Network
-# =========================================
 sudo apt update && sudo apt upgrade -y
+```
+
+2. Install Redis & Curl
