@@ -17,7 +17,12 @@ sudo apt install -y redis-server curl
 sudo systemctl enable --now redis-server
 ```
 
-### 3. Install MongoDB 7.0 (repo resmi mongodb.com)
+### 3. Install MongoDB 7.0
+a. Download GPG Key untuk verifikasi paket MongoDB<br>
+b. Menambah Repo MongoDB ke dalam system<br>
+c. Update daftar paket untuk repo yang baru
+d. Install MongoDB dan semua paketnya
+e. Running otomatis MongoDB dan autostart saat server up
 ```bash
 curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | \
   sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
