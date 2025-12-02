@@ -1,6 +1,4 @@
-<center>
-  # Install GenieACS (Ubuntu 24.04 Server & Desktop)
-</center>
+# Install GenieACS (Ubuntu 24.04 Server & Desktop)
 
 Project ini akan membantu install GenieACS di Ubuntu (Server & Dekstop) 24.04 LTS (Noble Numbat)
 
