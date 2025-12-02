@@ -39,6 +39,9 @@ b. Install Node.js dan build essentialnya
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs build-essential
+```
 
-
+### 5. Install GenieACS via npm
+```bash
+sudo npm install -g genieacs
 ```
