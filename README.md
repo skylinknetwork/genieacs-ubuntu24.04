@@ -1,8 +1,8 @@
-# Proyek Nama Anda
+# Tutorial Install GenieACS di Ubuntu 24.04 (Server & Desktop)
 
-Deskripsi singkat tentang proyek Anda.
+Project ini akan membantu install GenieACS di Ubuntu (Server & Dekstop) 24.04 LTS (Noble Numbat)
 
-## Instalasi
+## Ikuti Proses nya satu persatu sesuai urutan dan jangan loncat2 ya sayang 
 
 Langkah-langkah untuk menginstal dan menjalankan proyek ini.
 
