@@ -20,8 +20,8 @@ sudo systemctl enable --now redis-server
 ### 3. Install MongoDB 7.0
 a. Download GPG Key untuk verifikasi paket MongoDB<br>
 b. Menambah Repo MongoDB ke dalam system<br>
-c. Update daftar paket untuk repo yang baru
-d. Install MongoDB dan semua paketnya
+c. Update daftar paket untuk repo yang baru<br>
+d. Install MongoDB dan semua paketnya<br>
 e. Running otomatis MongoDB dan autostart saat server up
 ```bash
 curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | \
