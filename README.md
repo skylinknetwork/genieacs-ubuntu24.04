@@ -42,6 +42,8 @@ sudo apt install -y nodejs build-essential
 ```
 
 ### 5. Install GenieACS via npm
+Menginstal GenieACS secara global menggunakan npm<br>
+NPM (Node Packet Manager) tools untuk mengelola paket
 ```bash
 sudo npm install -g genieacs
 ```
