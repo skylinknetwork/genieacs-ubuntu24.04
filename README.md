@@ -49,7 +49,7 @@ sudo npm install -g genieacs
 ```
 
 ### 6. Buat & aktifkan service systemd GenieACS
-6.1 Buat dan setting Systemd untuk GenieACS Web UI<br>
+6.1 Buat dan setting GenieACS Web UI<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sekaligus aktifkan auto start ketika berhenti
 ```bash
 sudo tee /etc/systemd/system/genieacs-ui.service > /dev/null << EOF
@@ -70,3 +70,22 @@ WantedBy=multi-user.target
 EOF
 ```
 
+6.2 Buat dan setting GenieACS CWMP
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CWMP (CPE WAN Management Protocol)
+```bash
+sudo tee /etc/systemd/system/genieacs-cwmp.service > /dev/null << EOF
+[Unit]
+Description=GenieACS CWMP
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/genieacs-cwmp
+User=nobody
+Restart=always
+Environment=GENIEACS_CWMP_PORT=7547
+Environment=GENIEACS_CWMP_INTERFACE=${ACS_IP}
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
