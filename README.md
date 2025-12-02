@@ -71,7 +71,8 @@ EOF
 ```
 
 6.2 Buat dan setting GenieACS CWMP<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CWMP (CPE WAN Management Protocol)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CWMP (CPE WAN Management Protocol)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sekaligus aktifkan auto start ketika berhenti
 ```bash
 sudo tee /etc/systemd/system/genieacs-cwmp.service > /dev/null << EOF
 [Unit]
@@ -89,3 +90,22 @@ Environment=GENIEACS_CWMP_INTERFACE=${ACS_IP}
 WantedBy=multi-user.target
 EOF
 ```
+
+6.3 Buat dan setting GenieACS NBI<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NBI (Northbound Interface) digunakan berkomunikasi antara sistem manajemen<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sekaligus aktifkan auto start ketika berhenti
+```bash
+sudo tee /etc/systemd/system/genieacs-nbi.service > /dev/null << EOF
+[Unit]
+Description=GenieACS NBI
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/genieacs-nbi
+User=nobody
+Restart=always
+Environment=GENIEACS_NBI_PORT=7557
+
+[Install]
+WantedBy=multi-user.target
+EOF
