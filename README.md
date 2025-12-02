@@ -50,7 +50,7 @@ sudo npm install -g genieacs
 
 ### 6. Buat & aktifkan service systemd GenieACS
 6.1 Buat dan setting Systemd untuk GenieACS Web UI<br>
-    Sekaligus aktifkan auto start ketika berhenti
+&nbsp;&nbsp;&nbsp;Sekaligus aktifkan auto start ketika berhenti
 ```bash
 sudo tee /etc/systemd/system/genieacs-ui.service > /dev/null << EOF
 [Unit]
@@ -69,3 +69,4 @@ Environment=NODE_ENV=production
 WantedBy=multi-user.target
 EOF
 ```
+
