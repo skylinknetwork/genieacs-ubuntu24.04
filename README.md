@@ -202,3 +202,11 @@ Environment=GENIEACS_FS_PORT=7567
 WantedBy=multi-user.target
 EOF
 ```
+
+### 7. Jalankan Semua service yang telah dibuat
+Memperbarui sistem untuk semua service yang baru saja dibuat.
+(GenieACS UI, GenieACS CWMP, GenieACS NBI, dan GenieACS File Server)
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now genieacs-ui genieacs-cwmp genieacs-nbi genieacs-fs
+```
