@@ -47,3 +47,25 @@ NPM (Node Packet Manager) tools untuk mengelola paket
 ```bash
 sudo npm install -g genieacs
 ```
+
+### 6. Buat & aktifkan service systemd GenieACS
+6.1 Buat dan setting Systemd untuk GenieACS Web UI<br>
+    Sekaligus aktifkan auto start ketika berhenti
+```bash
+sudo tee /etc/systemd/system/genieacs-ui.service > /dev/null << EOF
+[Unit]
+Description=GenieACS Web UI
+After=network-online.target
+
+[Service]
+Type=simple
+User=${REAL_USER}
+WorkingDirectory=${REAL_HOME}
+ExecStart=/usr/bin/genieacs-ui --ui-jwt-secret ${UI_JWT_SECRET}
+Restart=always
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
