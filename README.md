@@ -10,8 +10,8 @@ sudo apt update && sudo apt upgrade -y
 ```
 
 2. Install dan Enable Redis & Curl
-   Redis adalah layanan untuk caching di memory
-   dan curl adalah tools untuk upload download dalam jaringan
+   <br>Redis adalah layanan data dama bentuk caching di memory
+   <br>Curl adalah tools untuk upload download dalam jaringan
 ```bash
 sudo apt install -y redis-server curl
 sudo systemctl enable --now redis-server
