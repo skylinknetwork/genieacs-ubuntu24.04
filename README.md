@@ -32,3 +32,13 @@ sudo apt update
 sudo apt install -y mongodb-org
 sudo systemctl enable --now mongod
 ```
+
+### 4. Install Node.js 20 LTS & build-essential
+a. Download repo Node.js v20<br>
+b. Install Node.js dan build essentialnya
+```bash
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs build-essential
+
+
+```
