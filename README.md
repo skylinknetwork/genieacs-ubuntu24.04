@@ -4,7 +4,7 @@ Project ini akan membantu install GenieACS di Ubuntu 24.04 LTS (Noble Numbat) Un
 
 ## Ikuti Proses nya sesuai urutan ya sayang ❤️
 
-1. Update dan upgrade apt di Ubuntu 24.04
+### 1. Update dan upgrade apt di Ubuntu 24.04
 ```bash
 sudo apt update && sudo apt upgrade -y
 ```
