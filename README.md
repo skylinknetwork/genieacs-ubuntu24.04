@@ -56,20 +56,9 @@ REAL_USER="$(logname 2>/dev/null || echo "${SUDO_USER:-}" || whoami)"
 if [ "$REAL_USER" = "root" ] || [ -z "$REAL_USER" ]; then
   REAL_USER="$(getent passwd | awk -F: '$3>=1000 && $3<60000 {print $1; exit}')"
 fi
-
 REAL_HOME="$(getent passwd "$REAL_USER" | cut -d: -f6)"
 [ -d "$REAL_HOME" ] || REAL_HOME="/home/${REAL_USER}"
-
-ACS_IP="$(ip -4 route get 1.1.1.1 2>/dev/null | awk '/src/ {for(i=1;i<=NF;i++){if($i=="src"){print $(i+1); exit}}}')"
-[ -n "${ACS_IP:-}" ] || ACS_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
-
 UI_JWT_SECRET="rahasia-panjang-anda"
-
-echo "User terdeteksi  : ${REAL_USER}"
-echo "Home directory   : ${REAL_HOME}"
-echo "IP ACS terdeteksi: ${ACS_IP}"
-echo ""
-sleep 2
 sudo tee /etc/systemd/system/genieacs-ui.service > /dev/null << EOF
 [Unit]
 Description=GenieACS Web UI
@@ -92,24 +81,8 @@ EOF
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CWMP (CPE WAN Management Protocol)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sekaligus aktifkan auto start ketika berhenti
 ```bash
-REAL_USER="$(logname 2>/dev/null || echo "${SUDO_USER:-}" || whoami)"
-if [ "$REAL_USER" = "root" ] || [ -z "$REAL_USER" ]; then
-  REAL_USER="$(getent passwd | awk -F: '$3>=1000 && $3<60000 {print $1; exit}')"
-fi
-
-REAL_HOME="$(getent passwd "$REAL_USER" | cut -d: -f6)"
-[ -d "$REAL_HOME" ] || REAL_HOME="/home/${REAL_USER}"
-
 ACS_IP="$(ip -4 route get 1.1.1.1 2>/dev/null | awk '/src/ {for(i=1;i<=NF;i++){if($i=="src"){print $(i+1); exit}}}')"
 [ -n "${ACS_IP:-}" ] || ACS_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
-
-UI_JWT_SECRET="rahasia-panjang-anda"
-
-echo "User terdeteksi  : ${REAL_USER}"
-echo "Home directory   : ${REAL_HOME}"
-echo "IP ACS terdeteksi: ${ACS_IP}"
-echo ""
-sleep 2
 sudo tee /etc/systemd/system/genieacs-cwmp.service > /dev/null << EOF
 [Unit]
 Description=GenieACS CWMP
@@ -131,24 +104,6 @@ EOF
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NBI (Northbound Interface) digunakan berkomunikasi antara sistem manajemen<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sekaligus aktifkan auto start ketika berhenti
 ```bash
-REAL_USER="$(logname 2>/dev/null || echo "${SUDO_USER:-}" || whoami)"
-if [ "$REAL_USER" = "root" ] || [ -z "$REAL_USER" ]; then
-  REAL_USER="$(getent passwd | awk -F: '$3>=1000 && $3<60000 {print $1; exit}')"
-fi
-
-REAL_HOME="$(getent passwd "$REAL_USER" | cut -d: -f6)"
-[ -d "$REAL_HOME" ] || REAL_HOME="/home/${REAL_USER}"
-
-ACS_IP="$(ip -4 route get 1.1.1.1 2>/dev/null | awk '/src/ {for(i=1;i<=NF;i++){if($i=="src"){print $(i+1); exit}}}')"
-[ -n "${ACS_IP:-}" ] || ACS_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
-
-UI_JWT_SECRET="rahasia-panjang-anda"
-
-echo "User terdeteksi  : ${REAL_USER}"
-echo "Home directory   : ${REAL_HOME}"
-echo "IP ACS terdeteksi: ${ACS_IP}"
-echo ""
-sleep 2
 sudo tee /etc/systemd/system/genieacs-nbi.service > /dev/null << EOF
 [Unit]
 Description=GenieACS NBI
@@ -169,24 +124,6 @@ EOF
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Buat dan setting GenieACS File Server<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sekaligus aktifkan auto start ketika berhenti
 ```bash
-REAL_USER="$(logname 2>/dev/null || echo "${SUDO_USER:-}" || whoami)"
-if [ "$REAL_USER" = "root" ] || [ -z "$REAL_USER" ]; then
-  REAL_USER="$(getent passwd | awk -F: '$3>=1000 && $3<60000 {print $1; exit}')"
-fi
-
-REAL_HOME="$(getent passwd "$REAL_USER" | cut -d: -f6)"
-[ -d "$REAL_HOME" ] || REAL_HOME="/home/${REAL_USER}"
-
-ACS_IP="$(ip -4 route get 1.1.1.1 2>/dev/null | awk '/src/ {for(i=1;i<=NF;i++){if($i=="src"){print $(i+1); exit}}}')"
-[ -n "${ACS_IP:-}" ] || ACS_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
-
-UI_JWT_SECRET="rahasia-panjang-anda"
-
-echo "User terdeteksi  : ${REAL_USER}"
-echo "Home directory   : ${REAL_HOME}"
-echo "IP ACS terdeteksi: ${ACS_IP}"
-echo ""
-sleep 2
 sudo tee /etc/systemd/system/genieacs-fs.service > /dev/null << EOF
 [Unit]
 Description=GenieACS File Server
