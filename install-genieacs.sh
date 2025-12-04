@@ -31,7 +31,7 @@ echo "User terdeteksi  : ${REAL_USER}"
 echo "Home directory   : ${REAL_HOME}"
 echo "IP ACS terdeteksi: ${ACS_IP}"
 echo ""
-sleep 1
+sleep 2
 
 # =====================================================
 # 1. Update sistem
