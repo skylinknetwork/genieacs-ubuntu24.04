@@ -5,7 +5,7 @@ set -e
 
 echo "=== [1/5] Download file UI full dari GitHub ==="
 curl -fsSL -o /tmp/genieacs-ui-full.tar.gz \
-  https://raw.githubusercontent.com/skylinknetwork/genieacs-ubuntu24.04/main/genieacs-ui-full.tar.gz
+  https://raw.githubusercontent.com/skylinknetwork/genieacs-ubuntu24.04/main/genieacs.tar.gz
 
 echo "=== [2/5] Extract file ==="
 rm -rf /tmp/genieacs-ui-full
